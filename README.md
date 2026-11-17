@@ -1,44 +1,51 @@
-# 📝 Lista de Tarefas
+# Lista de tarefas
 
-Aplicação web de gerenciamento de tarefas desenvolvida com **React + Vite**.
+Um projeto de prática com React. Fiz esta aplicação para exercitar componentes, estado, eventos e manipulação de listas — coisas que estou aprendendo no curso de Engenharia de Software.
 
-![preview](src/assets/hero.png)
+A proposta é simples: abrir a página e organizar algumas tarefas, sem conta ou configuração complicada.
 
-## ✨ Funcionalidades
+## Funcionalidades
 
-- ✅ Adicionar tarefas
-- ✏️ Editar tarefas existentes
-- 🗑️ Deletar tarefas
-- ☑️ Marcar tarefas como concluídas
-- 📱 Interface responsiva e intuitiva
+- Criar, editar e excluir tarefas.
+- Marcar uma tarefa como concluída.
+- Guardar a lista no navegador, mesmo depois de atualizar a página.
+- Layout que se adapta a telas menores.
 
-## 🚀 Tecnologias utilizadas
+As tarefas ficam no `localStorage` **deste navegador**. Não há sincronização entre dispositivos nem banco de dados.
 
-- [React](https://react.dev/)
-- [Vite](https://vitejs.dev/)
-- JavaScript (ES6+)
-- CSS3
+## Rodar localmente
 
-## 🖥️ Como rodar o projeto
+Requer Node.js e npm.
 
 ```bash
-# Clone o repositório
 git clone https://github.com/Osacul1/lista-de-tarefas.git
-
-# Entre na pasta
 cd lista-de-tarefas
-
-# Instale as dependências
 npm install
-
-# Rode o projeto
 npm run dev
 ```
 
-Acesse http://localhost:5173 no navegador.
+O Vite mostra no terminal o endereço de acesso (geralmente `http://localhost:5173`).
 
-## 👨‍💻 Autor
+Para conferir o código:
 
-**Lucas Rodrigues de Resende**  
-Estudante de Engenharia de Software — UNISATC  
-[LinkedIn](https://linkedin.com/in/lucas-resende-404ba2320) · [GitHub](https://github.com/Osacul1)
+```bash
+npm run lint
+npm run build
+```
+
+## Tecnologias
+
+React, JavaScript, CSS e Vite.
+
+## Próximos ajustes
+
+- Filtros para separar tarefas pendentes e concluídas.
+- Melhorias de acessibilidade e navegação pelo teclado.
+- Testes automatizados para as principais ações.
+
+É um projeto pequeno de aprendizado, não um gerenciador de tarefas completo. Prefiro evoluir cada parte e entender como ela funciona.
+
+---
+
+Lucas Rodrigues de Resende · Criciúma/SC  
+[LinkedIn](https://www.linkedin.com/in/lucas-resende-404ba2320)
