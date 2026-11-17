@@ -1,51 +1,60 @@
 # Lista de tarefas
 
-Um projeto de prática com React. Fiz esta aplicação para exercitar componentes, estado, eventos e manipulação de listas — coisas que estou aprendendo no curso de Engenharia de Software.
+Projeto pessoal com React que uso para praticar o básico de uma interface: entrada de dados, estado, renderização de listas e persistência local.
 
-A proposta é simples: abrir a página e organizar algumas tarefas, sem conta ou configuração complicada.
+A primeira versão tinha apenas quatro ações. Depois, acrescentei filtros, pesquisa, um resumo do que ainda está pendente e testes das regras de tarefas. O objetivo continua sendo manter o código legível, inclusive para eu conseguir explicar cada decisão.
 
-## Funcionalidades
+## O que faz
 
-- Criar, editar e excluir tarefas.
-- Marcar uma tarefa como concluída.
-- Guardar a lista no navegador, mesmo depois de atualizar a página.
-- Layout que se adapta a telas menores.
+- Adiciona, edita, conclui e exclui tarefas.
+- Filtra entre todas, pendentes e concluídas.
+- Pesquisa tarefas pelo texto.
+- Mostra totais e permite limpar as concluídas.
+- Salva os dados no navegador para continuar depois de atualizar a página.
 
-As tarefas ficam no `localStorage` **deste navegador**. Não há sincronização entre dispositivos nem banco de dados.
+Não há cadastro, servidor ou sincronização. Os dados ficam no `localStorage` daquele navegador. Se os dados do site forem apagados, a lista também será perdida.
 
-## Rodar localmente
+## Rodar no computador
 
-Requer Node.js e npm.
+Requer Node.js compatível com a versão do Vite informada em `package.json` e npm.
 
 ```bash
 git clone https://github.com/Osacul1/lista-de-tarefas.git
 cd lista-de-tarefas
-npm install
+npm ci
 npm run dev
 ```
 
-O Vite mostra no terminal o endereço de acesso (geralmente `http://localhost:5173`).
+O Vite imprime no terminal o endereço local da aplicação.
 
-Para conferir o código:
+## Verificar
 
 ```bash
 npm run lint
+npm test
 npm run build
 ```
 
-## Tecnologias
+O comando `npm test` executa testes das funções de criação, edição, recuperação e filtragem em `src/tasks.js`. O fluxo completo da interface ainda precisa de testes de ponta a ponta e validação manual em diferentes navegadores.
 
-React, JavaScript, CSS e Vite.
+O repositório também inclui uma rotina do GitHub Actions que roda lint, testes e build quando há mudanças na branch principal.
 
-## Próximos ajustes
+## Estrutura
 
-- Filtros para separar tarefas pendentes e concluídas.
-- Melhorias de acessibilidade e navegação pelo teclado.
-- Testes automatizados para as principais ações.
+- `src/App.jsx` — interface e interação com o usuário.
+- `src/App.css` e `src/index.css` — layout e estilos.
+- `src/tasks.js` — regras de tratamento dos dados e filtros.
+- `src/tasks.test.js` — testes dessas regras.
 
-É um projeto pequeno de aprendizado, não um gerenciador de tarefas completo. Prefiro evoluir cada parte e entender como ela funciona.
+## O que quero melhorar
+
+- Testes da interface e do uso com teclado.
+- Exportação e importação das tarefas, sem exigir servidor.
+- Validação da experiência em telas pequenas.
+
+**Tecnologias:** React, JavaScript, CSS e Vite.
 
 ---
 
-Lucas Rodrigues de Resende · Criciúma/SC  
-[LinkedIn](https://www.linkedin.com/in/lucas-resende-404ba2320)
+Lucas Rodrigues de Resende · Estudante de Engenharia de Software em Criciúma/SC  
+[Meu perfil](https://github.com/Osacul1) · [LinkedIn](https://www.linkedin.com/in/lucas-resende-404ba2320)
