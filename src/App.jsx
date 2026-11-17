@@ -1,132 +1,138 @@
-import { useEffect, useState } from "react";
-import "./App.css";
+import { useEffect, useMemo, useState } from 'react'
+import { createTask, readTasks, STORAGE_KEY, updateTask, visibleTasks } from './tasks'
+import './App.css'
 
-const STORAGE_KEY = "lucas-lista-tarefas-v1";
-
-function carregarTarefas() {
-  try {
-    const salvas = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
-    return Array.isArray(salvas) ? salvas.filter(
-      (item) => item && typeof item.id === "string" && typeof item.texto === "string"
-    ) : [];
-  } catch {
-    return [];
-  }
+function newId() {
+  return globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random()}`
 }
 
 function App() {
-  const [tarefas, setTarefas] = useState(carregarTarefas);
-  const [texto, setTexto] = useState("");
-  const [editandoId, setEditandoId] = useState(null);
-  const [textoEdicao, setTextoEdicao] = useState("");
+  const [tasks, setTasks] = useState(() => readTasks(window.localStorage))
+  const [draft, setDraft] = useState('')
+  const [query, setQuery] = useState('')
+  const [filter, setFilter] = useState('todas')
+  const [editing, setEditing] = useState(null)
+  const [editDraft, setEditDraft] = useState('')
 
   useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(tarefas));
-    } catch {
-      // O app continua utilizável se o armazenamento estiver indisponível.
-    }
-  }, [tarefas]);
+    try { window.localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks)) } catch { /* modo privado ou armazenamento cheio */ }
+  }, [tasks])
 
-  function adicionarTarefa(evento) {
-    evento.preventDefault();
-    const valor = texto.trim();
-    if (!valor) return;
-    const id = typeof crypto !== "undefined" && crypto.randomUUID
-      ? crypto.randomUUID()
-      : `${Date.now()}-${Math.random()}`;
-    setTarefas((atuais) => [...atuais, { id, texto: valor, concluida: false }]);
-    setTexto("");
+  const done = tasks.filter(task => task.concluida).length
+  const pending = tasks.length - done
+  const filtered = useMemo(() => visibleTasks(tasks, filter, query), [tasks, filter, query])
+
+  function add(event) {
+    event.preventDefault()
+    const task = createTask(draft, newId())
+    if (!task) return
+    setTasks(current => [...current, task])
+    setDraft('')
   }
 
-  function deletarTarefa(id) {
-    setTarefas((atuais) => atuais.filter((tarefa) => tarefa.id !== id));
-    if (editandoId === id) setEditandoId(null);
+  function toggle(id) {
+    setTasks(current => current.map(task => task.id === id ? { ...task, concluida: !task.concluida } : task))
   }
 
-  function alternarConclusao(id) {
-    setTarefas((atuais) => atuais.map((tarefa) =>
-      tarefa.id === id ? { ...tarefa, concluida: !tarefa.concluida } : tarefa
-    ));
+  function remove(id) {
+    setTasks(current => current.filter(task => task.id !== id))
+    if (editing === id) setEditing(null)
   }
 
-  function iniciarEdicao(tarefa) {
-    setEditandoId(tarefa.id);
-    setTextoEdicao(tarefa.texto);
+  function beginEdit(task) {
+    setEditing(task.id)
+    setEditDraft(task.texto)
   }
 
-  function salvarEdicao(id) {
-    const valor = textoEdicao.trim();
-    if (!valor) return;
-    setTarefas((atuais) => atuais.map((tarefa) =>
-      tarefa.id === id ? { ...tarefa, texto: valor } : tarefa
-    ));
-    setEditandoId(null);
+  function saveEdit(event) {
+    event.preventDefault()
+    if (!editDraft.trim()) return
+    setTasks(current => updateTask(current, editing, editDraft))
+    setEditing(null)
   }
 
   return (
-    <main className="container">
-      <h1>Lista de tarefas</h1>
-      <p className="intro">Uma lista simples para organizar o dia.</p>
+    <main className="workspace">
+      <header className="heading">
+        <div>
+          <p className="eyebrow">ORGANIZAÇÃO PESSOAL</p>
+          <h1>Minhas tarefas<span className="period">.</span></h1>
+          <p className="subtitle">O que precisa sair do papel hoje?</p>
+        </div>
+        <span className="local-badge" title="Sem conta ou sincronização">Salvo neste dispositivo</span>
+      </header>
 
-      <form className="input-area" onSubmit={adicionarTarefa}>
-        <label className="sr-only" htmlFor="nova-tarefa">Nova tarefa</label>
-        <input
-          id="nova-tarefa"
-          type="text"
-          placeholder="O que precisa ser feito?"
-          value={texto}
-          maxLength={180}
-          onChange={(evento) => setTexto(evento.target.value)}
-        />
-        <button type="submit">Adicionar</button>
-      </form>
+      <section className="overview" aria-label="Resumo das tarefas">
+        <div className="metric"><span>Total</span><strong>{tasks.length}</strong></div>
+        <div className="metric"><span>Pendentes</span><strong>{pending}</strong></div>
+        <div className="metric"><span>Concluídas</span><strong>{done}</strong></div>
+      </section>
 
-      {tarefas.length === 0 ? (
-        <p className="vazia">Nenhuma tarefa por enquanto.</p>
-      ) : (
-        <ul>
-          {tarefas.map((tarefa) => (
-            <li key={tarefa.id} className={tarefa.concluida ? "concluida" : ""}>
-              {editandoId === tarefa.id ? (
-                <>
-                  <label className="sr-only" htmlFor={`editar-${tarefa.id}`}>Editar tarefa</label>
-                  <input
-                    id={`editar-${tarefa.id}`}
-                    className="input-edicao"
-                    value={textoEdicao}
-                    maxLength={180}
-                    onChange={(evento) => setTextoEdicao(evento.target.value)}
-                    onKeyDown={(evento) => {
-                      if (evento.key === "Enter") salvarEdicao(tarefa.id);
-                      if (evento.key === "Escape") setEditandoId(null);
-                    }}
-                  />
-                  <button type="button" className="btn-salvar" onClick={() => salvarEdicao(tarefa.id)}>Salvar</button>
-                </>
-              ) : (
-                <>
-                  <label className="tarefa-texto">
-                    <input
-                      type="checkbox"
-                      checked={Boolean(tarefa.concluida)}
-                      onChange={() => alternarConclusao(tarefa.id)}
-                    />
-                    <span>{tarefa.texto}</span>
-                  </label>
-                  <div className="acoes">
-                    <button type="button" className="btn-editar" aria-label={`Editar ${tarefa.texto}`} onClick={() => iniciarEdicao(tarefa)}>Editar</button>
-                    <button type="button" className="btn-deletar" aria-label={`Excluir ${tarefa.texto}`} onClick={() => deletarTarefa(tarefa.id)}>Excluir</button>
-                  </div>
-                </>
-              )}
-            </li>
-          ))}
-        </ul>
-      )}
-      <p className="nota">As tarefas são salvas apenas neste navegador.</p>
+      <section className="task-panel" aria-label="Gerenciar tarefas">
+        <form className="add-form" onSubmit={add}>
+          <label htmlFor="task-input">Nova tarefa</label>
+          <div className="input-row">
+            <input id="task-input" placeholder="Ex.: estudar redes por 15 minutos" value={draft} maxLength={180} onChange={event => setDraft(event.target.value)} />
+            <button className="primary-button" type="submit" disabled={!draft.trim()}>Adicionar</button>
+          </div>
+        </form>
+
+        <div className="tools">
+          <div className="filters" role="group" aria-label="Filtrar tarefas">
+            {[
+              ['todas', 'Todas'],
+              ['pendentes', 'Pendentes'],
+              ['concluidas', 'Concluídas'],
+            ].map(([value, label]) => (
+              <button type="button" key={value} className={filter === value ? 'filter active' : 'filter'} aria-pressed={filter === value} onClick={() => setFilter(value)}>{label}</button>
+            ))}
+          </div>
+          <label className="search-label">
+            <span className="sr-only">Pesquisar tarefas</span>
+            <input type="search" placeholder="Buscar tarefa" value={query} onChange={event => setQuery(event.target.value)} />
+          </label>
+        </div>
+
+        {filtered.length === 0 ? (
+          <div className="empty-state">
+            <h2>{tasks.length === 0 ? 'Sua lista começa aqui.' : 'Nenhuma tarefa encontrada.'}</h2>
+            <p>{tasks.length === 0 ? 'Adicione a primeira tarefa acima. Pode ser algo pequeno.' : 'Experimente mudar a busca ou o filtro.'}</p>
+          </div>
+        ) : (
+          <ul className="task-list">
+            {filtered.map(task => (
+              <li key={task.id} className={task.concluida ? 'task completed' : 'task'}>
+                {editing === task.id ? (
+                  <form className="edit-form" onSubmit={saveEdit}>
+                    <label className="sr-only" htmlFor={`edit-${task.id}`}>Editar tarefa</label>
+                    <input id={`edit-${task.id}`} autoFocus value={editDraft} maxLength={180} onChange={event => setEditDraft(event.target.value)} onKeyDown={event => { if (event.key === 'Escape') setEditing(null) }} />
+                    <button className="small-button save" type="submit" disabled={!editDraft.trim()}>Salvar</button>
+                    <button className="small-button" type="button" onClick={() => setEditing(null)}>Cancelar</button>
+                  </form>
+                ) : (
+                  <>
+                    <label className="task-label">
+                      <input type="checkbox" checked={task.concluida} onChange={() => toggle(task.id)} />
+                      <span>{task.texto}</span>
+                    </label>
+                    <div className="actions">
+                      <button type="button" className="small-button" aria-label={`Editar ${task.texto}`} onClick={() => beginEdit(task)}>Editar</button>
+                      <button type="button" className="small-button delete" aria-label={`Excluir ${task.texto}`} onClick={() => remove(task.id)}>Excluir</button>
+                    </div>
+                  </>
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
+        <footer className="panel-footer">
+          <span>{pending} {pending === 1 ? 'tarefa pendente' : 'tarefas pendentes'}</span>
+          {done > 0 && <button type="button" className="clear-button" onClick={() => setTasks(current => current.filter(task => !task.concluida))}>Limpar concluídas</button>}
+        </footer>
+      </section>
+      <p className="footnote">Um projeto de estudo com React. Seus dados ficam apenas neste navegador.</p>
     </main>
-  );
+  )
 }
 
-export default App;
+export default App
